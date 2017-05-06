@@ -54,7 +54,6 @@ static int32_t msm_actuator_write_sequence(
 	struct msm_camera_i2c_seq_reg_array *seq_reg_array;
 	int32_t i;
 	int32_t rc = 0;
-
     if ((data_size > I2C_SEQ_REG_DATA_MAX) || !data) {
         return -EFAULT;
     }
@@ -63,18 +62,15 @@ static int32_t msm_actuator_write_sequence(
     if (!seq_reg_array) {
         return -ENOMEM;
     }
-
     seq_reg_array->reg_addr = addr;
     for (i=0; i<data_size; i++) {
         seq_reg_array->reg_data[i] = data[i];
     }
     seq_reg_array->reg_data_size = data_size;
-
     seq_reg_setting.reg_setting = seq_reg_array;
     seq_reg_setting.addr_type = a_ctrl->i2c_client.addr_type;
     seq_reg_setting.size = 1;
     seq_reg_setting.delay = 0;
-
     rc = a_ctrl->i2c_client.i2c_func_tbl->
 		i2c_write_seq_table(
 		&a_ctrl->i2c_client, &seq_reg_setting);
@@ -148,13 +144,11 @@ static void msm_actuator_parse_i2c_params(struct msm_actuator_ctrl_t *a_ctrl,
                 i2c_tbl[a_ctrl->i2c_tbl_index].delay = 0;
                 a_ctrl->i2c_tbl_index++;
                 i++;
-
                 i2c_tbl[a_ctrl->i2c_tbl_index].reg_addr = write_arr[i].reg_addr;
                 i2c_tbl[a_ctrl->i2c_tbl_index].reg_data = 0x00;
                 i2c_tbl[a_ctrl->i2c_tbl_index].delay = 0;
                 a_ctrl->i2c_tbl_index++;
                 i++;
-
                 i2c_tbl[a_ctrl->i2c_tbl_index].reg_addr = write_arr[i].reg_addr;
                 i2c_tbl[a_ctrl->i2c_tbl_index].reg_data = (value & 0xFF00) >> 8;
                 i2c_tbl[a_ctrl->i2c_tbl_index].delay = 0;
@@ -717,7 +711,7 @@ static int32_t msm_actuator_move_focus(
 
 	move_params->curr_lens_pos = curr_lens_pos;
 
-	/* Modify for rohm_bu63165gwl, tanrifei, 20150428 */
+/* Modify for rohm_bu63165gwl, tanrifei, 20150428 */
 	#ifdef VENDOR_EDIT
 	if (!strcmp(a_ctrl->pdev->name,"1c.qcom,actuator")) {
             uint8_t data[4];
@@ -750,7 +744,7 @@ static int32_t msm_actuator_move_focus(
 	}
 	a_ctrl->i2c_tbl_index = 0;
 	#endif
-	/* end */
+/* end */
 	CDBG("Exit\n");
 
 	return rc;
@@ -1196,7 +1190,7 @@ static int32_t msm_actuator_set_position(
 		next_lens_position = set_pos->pos[index];
 		delay = set_pos->delay[index];
 
-	/* Modify for rohm_bu63165gwl, tanrifei, 20150428 */
+/* Modify for rohm_bu63165gwl, tanrifei, 20150428 */
 	#ifdef VENDOR_EDIT
 	if (!strcmp(a_ctrl->pdev->name,"1c.qcom,actuator")) {
 	    uint8_t data[4];
@@ -1208,11 +1202,9 @@ static int32_t msm_actuator_set_position(
 	} else {
 	    a_ctrl->func_tbl->actuator_parse_i2c_params(a_ctrl,
 	    next_lens_position, hw_params, delay);
-
 	    reg_setting.reg_setting = a_ctrl->i2c_reg_tbl;
 	    reg_setting.size = a_ctrl->i2c_tbl_index;
 	    reg_setting.data_type = a_ctrl->i2c_data_type;
-
 	    rc = a_ctrl->i2c_client.i2c_func_tbl->
 	        i2c_write_table_w_microdelay(
 	            &a_ctrl->i2c_client, &reg_setting);
@@ -1241,7 +1233,7 @@ static int32_t msm_actuator_set_position(
 		}
 		a_ctrl->i2c_tbl_index = 0;
 	#endif
-	/* end */
+/* end */
 	}
 	CDBG("%s exit %d\n", __func__, __LINE__);
 	return rc;
