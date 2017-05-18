@@ -133,8 +133,6 @@ struct test_header {
 #define Mgestrue            12  // M
 #define Wgestrue            13  // W
 
-// carlo@oneplus.net 2015-05-25, begin.
-#ifdef VENDOR_EDIT
 #define KEY_DOUBLE_TAP				KEY_WAKEUP
 #define KEY_GESTURE_CIRCLE			250
 #define KEY_GESTURE_TWO_SWIPE		251
@@ -142,11 +140,7 @@ struct test_header {
 #define KEY_GESTURE_LEFT_V			253
 #define KEY_GESTURE_RIGHT_V		254
 #define KEY_GESTURE_UP_ARROW    	255
-#endif
-// carlo@oneplus.net 2015-05-25, end.
 
-//ruanbanmao@BSP add for tp gesture 2015-05-06, begin
-#ifdef VENDOR_EDIT
 #define BIT0 (0x1 << 0)
 #define BIT1 (0x1 << 1)
 #define BIT2 (0x1 << 2)
@@ -171,10 +165,8 @@ int Down2UpSwip_gesture = 0; //"down to up |"
 
 int Wgestrue_gesture = 0; //"(W)"
 int Mgestrue_gesture = 0; //"(M)"
+#endif
 
-#endif
-//ruanbanmao@BSP add for tp gesture 2015-05-06, end
-#endif
 int syna_use_gesture = 0;
 EXPORT_SYMBOL(syna_use_gesture);
 
@@ -371,8 +363,6 @@ static const struct dev_pm_ops synaptic_pm_ops = {
 #endif
 };
 
-//add by jiachenghui for boot time optimize 2015-5-13
-#ifdef VENDOR_EDIT
 static int probe_ret;
 struct synaptics_optimize_data{
 	struct delayed_work work;
@@ -425,17 +415,9 @@ static int oem_synaptics_ts_probe(struct i2c_client *client, const struct i2c_de
 	//spin_unlock_irqrestore(&oem_lock, flags);
 	return probe_ret;
 }
-#endif /*VENDOR_EDIT*/
-//end add by jiachenghui for boot time optimize 2015-5-13
 
 static struct i2c_driver tpd_i2c_driver = {
-//add by jiachenghui for boot time optimize 2015-5-13
-#ifdef VENDOR_EDIT
 	.probe		= oem_synaptics_ts_probe,
-#else
-//end add by jiachenghui for boot time optimize 2015-5-13
-	.probe		= synaptics_ts_probe,
-#endif /*VENDOR_EDIT*///add by jiachenghui for boot time optimize 2015-5-13
 	.remove		= synaptics_ts_remove,
 	.id_table	= synaptics_ts_id,
 	.driver = {
@@ -1083,8 +1065,6 @@ static int synaptics_rmi4_i2c_write_word(struct i2c_client* client,
 	return retval;
 }
 
-//chenggang.li@BSP.TP modified for oem 2014-08-05 gesture_judge
-/***************start****************/
 #ifdef SUPPORT_GESTURE
 static void synaptics_get_coordinate_point(struct synaptics_ts_data *ts)
 {
@@ -1146,7 +1126,6 @@ static void gesture_judge(struct synaptics_ts_data *ts)
 	//detect the gesture mode
 	switch (gesture_sign) {
 		case DTAP_DETECT:
-			//#ifdef VENDOR_EDIT, ruanbanmao@bsp 2015-05-06, begin.
 			    gesture = DouTap;
 			break;
 		case SWIPE_DETECT:
@@ -1171,11 +1150,8 @@ static void gesture_judge(struct synaptics_ts_data *ts)
 			gesture = (gesture_buffer[2] == 0x77) ? Wgestrue :
 				(gesture_buffer[2] == 0x6d) ? Mgestrue :
 				UnkownGestrue;
-            //#endif, ruanbanmao@bsp 2015-05-06, end.
 	}
 
-// carlo@oneplus.net 2015-05-25, begin.
-#ifdef VENDOR_EDIT
 	keyCode = UnkownGestrue;
 	// Get key code based on registered gesture.
 	switch (gesture) {
@@ -1203,8 +1179,6 @@ static void gesture_judge(struct synaptics_ts_data *ts)
 		default:
 			break;
 	}
-#endif
-// carlo@oneplus.net 2015-05-25, end.
 
 	TPD_DEBUG("detect %s gesture\n", gesture == DouTap ? "double tap" :
 			gesture == UpVee ? "(V)" :
@@ -1449,20 +1423,18 @@ static ssize_t tp_gesture_write_func(struct file *file, const char __user *buffe
 		printk(KERN_INFO "%s: read proc input error.\n", __func__);
 		return count;
 	}
-	//ruanbanmao@BSP add for tp gesture 2015-05-06, begin
-	#ifdef VENDOR_EDIT
 	//sscanf(buf, "%d", &ret);
 	printk("synap %s status write buf[0]=%x\n",__func__,buf[0]);
 	if(!ts)
 		return count;
 
-    UpVee_gesture = (buf[0] & BIT0)?1:0; //"V"
-    DouSwip_gesture = (buf[0] & BIT1)?1:0;//"||"
-    DownVee_gesture = (buf[0] & BIT2)?1:0; //"^"
-    LeftVee_gesture = (buf[0] & BIT3)?1:0; //">"
-    RightVee_gesture = (buf[0] & BIT4)?1:0;//"<"
-    Circle_gesture = (buf[0] & BIT6)?1:0; //"O"
-    DouTap_gesture = (buf[0] & BIT7)?1:0; //double tap
+	UpVee_gesture = (buf[0] & BIT0)?1:0; //"V"
+	DouSwip_gesture = (buf[0] & BIT1)?1:0;//"||"
+	DownVee_gesture = (buf[0] & BIT2)?1:0; //"^"
+	LeftVee_gesture = (buf[0] & BIT3)?1:0; //">"
+	RightVee_gesture = (buf[0] & BIT4)?1:0;//"<"
+	Circle_gesture = (buf[0] & BIT6)?1:0; //"O"
+	DouTap_gesture = (buf[0] & BIT7)?1:0; //double tap
 
 	if(DouTap_gesture||Circle_gesture||UpVee_gesture||DownVee_gesture||LeftVee_gesture\
         ||RightVee_gesture||DouSwip_gesture)
@@ -1475,8 +1447,6 @@ static ssize_t tp_gesture_write_func(struct file *file, const char __user *buffe
         ts->double_enable = 0;
 		syna_use_gesture = 0;
     }
-	#endif
-    //ruanbanmao@BSP add for tp gesture 2015-05-06, end
 	return count;
 }
 static ssize_t coordinate_proc_read_func(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
@@ -2486,7 +2456,6 @@ static int	synaptics_input_init(struct synaptics_ts_data *ts)
 
 #ifdef SUPPORT_GESTURE
 	set_bit(KEY_F4 , ts->input_dev->keybit);//doulbe-tap resume
-#ifdef VENDOR_EDIT
 	set_bit(KEY_DOUBLE_TAP, ts->input_dev->keybit);
 	set_bit(KEY_GESTURE_CIRCLE, ts->input_dev->keybit);
 	set_bit(KEY_GESTURE_UP_ARROW, ts->input_dev->keybit);
@@ -2494,7 +2463,6 @@ static int	synaptics_input_init(struct synaptics_ts_data *ts)
 	set_bit(KEY_GESTURE_TWO_SWIPE, ts->input_dev->keybit);
 	set_bit(KEY_GESTURE_LEFT_V, ts->input_dev->keybit);
 	set_bit(KEY_GESTURE_RIGHT_V, ts->input_dev->keybit);
-#endif
 #endif
 	/* For multi touch */
 	input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
@@ -3478,9 +3446,7 @@ static int synaptics_ts_probe(struct i2c_client *client, const struct i2c_device
 	if( ret < 0 )
 		TPD_ERR("regulator_enable is called\n");
 
-#ifdef VENDOR_EDIT //WayneChang, 2016/1/5, set 80~100ms delay for device getting ready after power on
     msleep(100);
-#endif
 
 	mutex_init(&ts->mutex);
     atomic_set(&ts->irq_enable,0);
