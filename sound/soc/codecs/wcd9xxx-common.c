@@ -657,16 +657,29 @@ static void wcd9xxx_clsh_comp_req(struct snd_soc_codec *codec,
 			return;
 		}
 
-		if (on)
-			wcd9xxx_resmgr_add_cond_update_bits(clsh_d->resmgr,
+		if (on) {
+			if (clsh_d->mbhc_started)
+				wcd9xxx_resmgr_add_cond_update_bits(
+						  clsh_d->resmgr,
 						  WCD9XXX_COND_HPH,
 						  WCD9XXX_A_CDC_CLSH_B1_CTL,
 						  shift, false);
-		else
-			wcd9xxx_resmgr_rm_cond_update_bits(clsh_d->resmgr,
+			else
+				snd_soc_update_bits(codec,
+						    WCD9XXX_A_CDC_CLSH_B1_CTL,
+						    1 << shift, 1 << shift);
+		} else {
+			if (clsh_d->mbhc_started)
+				wcd9xxx_resmgr_rm_cond_update_bits(
+						  clsh_d->resmgr,
 						  WCD9XXX_COND_HPH,
 						  WCD9XXX_A_CDC_CLSH_B1_CTL,
 						  shift, false);
+			else
+				snd_soc_update_bits(codec,
+						    WCD9XXX_A_CDC_CLSH_B1_CTL,
+						    1 << shift, 0 << shift);
+		}
 	}
 }
 
@@ -1015,10 +1028,12 @@ static void wcd9xxx_clsh_state_hph_lo(struct snd_soc_codec *codec,
 			(req_state == WCD9XXX_CLSH_STATE_LO)) {
 			wcd9xxx_dynamic_bypass_buck_ctrl_lo(codec, false);
 			wcd9xxx_enable_buck(codec, clsh_d, true);
-			wcd9xxx_set_fclk_get_ncp(codec, clsh_d,
-						NCP_FCLK_LEVEL_8);
+			wcd9xxx_ncp_bypass_enable(codec, true);
 			if (req_state & WCD9XXX_CLSH_STATE_HPH_ST) {
-				wcd9xxx_ncp_bypass_enable(codec, true);
+				wcd9xxx_set_fclk_get_ncp(codec, clsh_d,
+							NCP_FCLK_LEVEL_8);
+				wcd9xxx_set_fclk_put_ncp(codec, clsh_d,
+							NCP_FCLK_LEVEL_5);
 				wcd9xxx_enable_clsh_block(codec, clsh_d, true);
 				wcd9xxx_chargepump_request(codec, true);
 				wcd9xxx_enable_anc_delay(codec, true);
@@ -1053,9 +1068,15 @@ static void wcd9xxx_clsh_state_hph_lo(struct snd_soc_codec *codec,
 		}
 		if ((req_state == WCD9XXX_CLSH_STATE_LO) ||
 		((clsh_d->state & (~req_state)) == WCD9XXX_CLSH_STATE_LO)) {
-			wcd9xxx_set_fclk_put_ncp(codec, clsh_d,
-						NCP_FCLK_LEVEL_8);
 			wcd9xxx_ncp_bypass_enable(codec, false);
+
+			if ((clsh_d->state & (~req_state)) ==
+						WCD9XXX_CLSH_STATE_LO) {
+				wcd9xxx_set_fclk_get_ncp(codec, clsh_d,
+							NCP_FCLK_LEVEL_5);
+				wcd9xxx_set_fclk_put_ncp(codec, clsh_d,
+							NCP_FCLK_LEVEL_8);
+			}
 
 			if (req_state & WCD9XXX_CLSH_STATE_HPH_ST) {
 				usleep_range(BUCK_SETTLE_TIME_US,
@@ -1095,11 +1116,13 @@ static void wcd9xxx_clsh_state_ear_lo(struct snd_soc_codec *codec,
 	if (is_enable) {
 		wcd9xxx_dynamic_bypass_buck_ctrl(codec, false);
 		wcd9xxx_enable_buck(codec, clsh_d, true);
+		wcd9xxx_ncp_bypass_enable(codec, true);
 		if (req_state & WCD9XXX_CLSH_STATE_EAR) {
 			wcd9xxx_cfg_clsh_param_ear(codec);
 			wcd9xxx_set_fclk_get_ncp(codec, clsh_d,
 						NCP_FCLK_LEVEL_8);
-			wcd9xxx_ncp_bypass_enable(codec, true);
+			wcd9xxx_set_fclk_put_ncp(codec, clsh_d,
+						NCP_FCLK_LEVEL_5);
 			wcd9xxx_enable_clsh_block(codec, clsh_d, true);
 			wcd9xxx_chargepump_request(codec, true);
 			wcd9xxx_enable_anc_delay(codec, true);
@@ -1107,8 +1130,15 @@ static void wcd9xxx_clsh_state_ear_lo(struct snd_soc_codec *codec,
 						CLSH_COMPUTE_EAR, true);
 		}
 	} else {
-		wcd9xxx_set_fclk_put_ncp(codec, clsh_d, NCP_FCLK_LEVEL_8);
 		wcd9xxx_ncp_bypass_enable(codec, false);
+
+		if ((clsh_d->state & (~req_state)) == WCD9XXX_CLSH_STATE_LO) {
+			wcd9xxx_set_fclk_get_ncp(codec, clsh_d,
+						NCP_FCLK_LEVEL_5);
+			wcd9xxx_set_fclk_put_ncp(codec, clsh_d,
+						NCP_FCLK_LEVEL_8);
+		}
+
 		if (req_state & WCD9XXX_CLSH_STATE_LO) {
 			snd_soc_update_bits(codec, WCD9XXX_A_NCP_STATIC,
 						0x20, 0x00);
@@ -1249,6 +1279,12 @@ static void wcd9xxx_clsh_state_hph_st(struct snd_soc_codec *codec,
 		u8 req_state, bool is_enable)
 {
 	pr_debug("%s: enter %s\n", __func__, is_enable ? "enable" : "disable");
+
+	if (is_enable) {
+		dev_dbg(codec->dev, "%s: stub fallback to hph_st\n", __func__);
+	} else {
+		dev_dbg(codec->dev, "%s: stub fallback to hph_st\n", __func__);
+	}
 }
 
 static void wcd9xxx_clsh_state_lo(struct snd_soc_codec *codec,
@@ -1426,6 +1462,19 @@ void wcd9xxx_clsh_fsm(struct snd_soc_codec *codec,
 }
 EXPORT_SYMBOL_GPL(wcd9xxx_clsh_fsm);
 
+
+void wcd9xxx_clsh_post_init(struct wcd9xxx_clsh_cdc_data *clsh,
+			    bool is_mbhc_started)
+{
+	if (!clsh) {
+		pr_err("%s: Class-H memory is NULL\n", __func__);
+		return;
+	}
+
+	clsh->mbhc_started = is_mbhc_started;
+}
+EXPORT_SYMBOL(wcd9xxx_clsh_post_init);
+
 void wcd9xxx_clsh_init(struct wcd9xxx_clsh_cdc_data *clsh,
 		       struct wcd9xxx_resmgr *resmgr)
 {
@@ -1462,6 +1511,7 @@ void wcd9xxx_clsh_init(struct wcd9xxx_clsh_cdc_data *clsh,
 	clsh_state_fp[WCD9XXX_CLSH_STATE_HPH_ST_EAR_LO] =
 						wcd9xxx_clsh_state_hph_ear_lo;
 
+	clsh->mbhc_started = true;
 }
 EXPORT_SYMBOL_GPL(wcd9xxx_clsh_init);
 

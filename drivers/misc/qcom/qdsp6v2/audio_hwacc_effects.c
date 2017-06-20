@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2016-2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -101,7 +101,7 @@ static void audio_effects_event_handler(uint32_t opcode, uint32_t token,
 	struct q6audio_effects *effects;
 
 	if (!payload || !priv) {
-		pr_err("%s: invalid data to handle events, payload: %pK, priv: %pK\n",
+		pr_err("%s: invalid data to handle events, payload: %p, priv: %p\n",
 			__func__, payload, priv);
 		return;
 	}
@@ -200,8 +200,7 @@ static int audio_effects_shared_ioctl(struct file *file, unsigned cmd,
 			effects->config.input.num_channels);
 		rc = q6asm_enc_cfg_blk_pcm(effects->ac,
 					   effects->config.input.sample_rate,
-					   effects->config.input.num_channels,
-					   false);
+					   effects->config.input.num_channels);
 		if (rc < 0) {
 			pr_err("%s: pcm read block config failed\n", __func__);
 			rc = -EINVAL;
@@ -335,7 +334,7 @@ static int audio_effects_shared_ioctl(struct file *file, unsigned cmd,
 			}
 			if ((effects->config.buf_cfg.input_len > size) ||
 				copy_to_user((void *)arg, bufptr,
-					  effects->config.buf_cfg.input_len)) {
+					effects->config.buf_cfg.input_len)) {
 				rc = -EFAULT;
 				mutex_unlock(&effects->lock);
 				goto ioctl_fail;
@@ -743,7 +742,7 @@ static int audio_effects_release(struct inode *inode, struct file *file)
 				__func__);
 		rc = q6asm_cmd(effects->ac, CMD_CLOSE);
 		if (rc < 0)
-			pr_err("%s[%pK]:Failed to close the session rc=%d\n",
+			pr_err("%s[%p]:Failed to close the session rc=%d\n",
 				__func__, effects, rc);
 		effects->opened = 0;
 		effects->started = 0;

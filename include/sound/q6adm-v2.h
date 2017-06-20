@@ -36,6 +36,7 @@ enum {
 	ADM_RTAC_APR_CAL,
 	ADM_DTS_EAGLE,
 	ADM_SRS_TRUMEDIA,
+	ADM_RTAC_AUDVOL_CAL,
 	ADM_MAX_CAL_TYPES
 };
 
@@ -51,12 +52,6 @@ struct route_payload {
 	int sample_rate;
 	unsigned short num_copps;
 	unsigned int session_id;
-};
-
-struct msm_pcm_channel_mux {
-	int out_channel;
-	int input_channel;
-	u16 channel_config[16][16];
 };
 
 int srs_trumedia_open(int port_id, int copp_idx, __s32 srs_tech_id,
@@ -77,8 +72,6 @@ int adm_dolby_dap_send_params(int port_id, int copp_idx, char *params,
 int adm_open(int port, int path, int rate, int mode, int topology,
 			   int perf_mode, uint16_t bits_per_sample,
 			   int app_type, int acdbdev_id);
-
-int adm_set_dirac_enable_params(int port_id, uint32_t module_id, int copp_idx, uint32_t param_id, int enable);
 
 int adm_map_rtac_block(struct rtac_cal_block_data *cal_block);
 
@@ -138,10 +131,4 @@ int adm_store_cal_data(int port_id, int copp_idx, int path, int perf_mode,
 int adm_send_compressed_device_mute(int port_id, int copp_idx, bool mute_on);
 
 int adm_send_compressed_device_latency(int port_id, int copp_idx, int latency);
-
-int programable_channel_mixer(int port_id, int copp_idx, int session_id,
-		int session_type, struct msm_pcm_channel_mux *ch_mux,
-		int num_ch);
-
-
 #endif /* __Q6_ADM_V2_H__ */

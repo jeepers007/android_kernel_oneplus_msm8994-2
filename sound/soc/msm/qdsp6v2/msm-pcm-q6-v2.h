@@ -64,7 +64,7 @@ struct msm_audio_in_frame_info {
 #define CAPTURE_MIN_NUM_PERIODS     2
 #define CAPTURE_MAX_NUM_PERIODS     8
 #define CAPTURE_MAX_PERIOD_SIZE     16384
-#define CAPTURE_MIN_PERIOD_SIZE     320
+#define CAPTURE_MIN_PERIOD_SIZE     64
 
 struct msm_audio {
 	struct snd_pcm_substream *substream;
@@ -109,7 +109,6 @@ struct msm_audio {
 	int cmd_interrupt;
 	bool meta_data_mode;
 	uint32_t volume;
-	int ch_mixer;
 	/* array of frame info */
 	struct msm_audio_in_frame_info in_frame_info[CAPTURE_MAX_NUM_PERIODS];
 };

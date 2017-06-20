@@ -282,6 +282,12 @@ config SND_SOC_MAX98090
 config SND_SOC_MAX98095
        tristate
 
+config SND_SOC_MAX98925
+	bool "Support MAX98925 stereo system"
+	depends on I2C
+	help
+	MAX98925 driver for a stereo system.
+
 config SND_SOC_MAX9850
 	tristate
 
@@ -325,6 +331,16 @@ config SND_SOC_STAC9766
 
 config SND_SOC_TAS5086
 	tristate
+	
+config SND_SOC_TFA9890
+	bool "Support TFA9890 stereo system"
+	depends on I2C
+	help
+    	TFA9890 driver for a stereo system.
+
+config SND_SOC_TFA98XX
+	tristate
+	default y
 
 config SND_SOC_TLV320AIC23
 	tristate

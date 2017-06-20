@@ -59,6 +59,7 @@
 #define LPASS_BE_SLIMBUS_5_TX "SLIMBUS_5_TX"
 #define LPASS_BE_SLIMBUS_6_RX "SLIMBUS_6_RX"
 #define LPASS_BE_SLIMBUS_6_TX "SLIMBUS_6_TX"
+#define LPASS_BE_SLIMBUS_5_RX "SLIMBUS_5_RX"
 
 /* For multimedia front-ends, asm session is allocated dynamically.
  * Hence, asm session/multimedia front-end mapping has to be maintained.
@@ -155,6 +156,7 @@ enum {
 	MSM_BACKEND_DAI_SLIMBUS_6_TX,
 	MSM_BACKEND_DAI_SPDIF_RX,
 	MSM_BACKEND_DAI_SECONDARY_MI2S_RX_SD1,
+	MSM_BACKEND_DAI_SLIMBUS_5_RX,
 	MSM_BACKEND_DAI_MAX,
 };
 
@@ -250,8 +252,4 @@ void msm_pcm_routing_release_lock(void);
 
 void msm_pcm_routing_reg_stream_app_type_cfg(int fedai_id, int app_type,
 					int acdb_dev_id, int sample_rate);
-
-int msm_pcm_routing_channel_mixer(int fedai_id, bool perf_mode,
-			int dspst_id, int stream_type, int be_id);
-
 #endif /*_MSM_PCM_H*/

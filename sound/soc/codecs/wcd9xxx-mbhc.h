@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -12,7 +12,6 @@
 #ifndef __WCD9XXX_MBHC_H__
 #define __WCD9XXX_MBHC_H__
 
-#include<linux/switch.h>
 #include "wcd9xxx-resmgr.h"
 #include "wcdcal-hwdep.h"
 
@@ -263,7 +262,6 @@ struct wcd9xxx_mbhc_config {
 	unsigned int mclk_rate;
 	unsigned int gpio;
 	unsigned int gpio_irq;
-	int headset_type;
 	int gpio_level_insert;
 	bool insert_detect; /* codec has own MBHC_INSERT_DETECT */
 	bool detect_extn_cable;
@@ -277,7 +275,6 @@ struct wcd9xxx_mbhc_config {
 	bool use_vddio_meas;
 	bool enable_anc_mic_detect;
 	enum hw_jack_type hw_jack_type;
-	int key_code[8];
 };
 
 struct wcd9xxx_cfilt_mode {
@@ -407,10 +404,10 @@ struct wcd9xxx_mbhc {
 	/* Indicates status of current source switch */
 	bool is_cs_enabled;
 
-	struct switch_dev wcd9xxx_sdev;
-
 	/* Holds type of Headset - Mono/Stereo */
 	enum mbhc_hph_type hph_type;
+
+	bool is_jack_type_swchd;
 
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *debugfs_poke;
@@ -418,6 +415,8 @@ struct wcd9xxx_mbhc {
 #endif
 
 	struct mutex mbhc_lock;
+
+	bool force_linein;
 };
 
 #define WCD9XXX_MBHC_CAL_SIZE(buttons, rload) ( \
@@ -475,7 +474,6 @@ struct wcd9xxx_mbhc {
 	    (cfg_ptr->_n_rload * \
 	     (sizeof(cfg_ptr->_rload[0]) + sizeof(cfg_ptr->_alpha[0]))))
 
-int wcd9xxx_mbhc_set_keycode(struct wcd9xxx_mbhc *mbhc);
 int wcd9xxx_mbhc_start(struct wcd9xxx_mbhc *mbhc,
 		       struct wcd9xxx_mbhc_config *mbhc_cfg);
 void wcd9xxx_mbhc_stop(struct wcd9xxx_mbhc *mbhc);
