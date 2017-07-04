@@ -28,13 +28,7 @@
 #define CCI_I2C_QUEUE_1_SIZE 16
 #define CYCLES_PER_MICRO_SEC_DEFAULT 4915
 #define CCI_MAX_DELAY 1000000
-
-#ifdef VENDOR_EDIT
-//muyuezhong@camera,2015-4-22,modify it for more cci_timeout
 #define CCI_TIMEOUT msecs_to_jiffies(500)
-#else
-#define CCI_TIMEOUT msecs_to_jiffies(100)
-#endif
 
 /* TODO move this somewhere else */
 #define MSM_CCI_DRV_NAME "msm_cci"
@@ -723,11 +717,19 @@ static int32_t msm_cci_i2c_read(struct v4l2_subdev *sd,
 	enum cci_i2c_queue_t queue = QUEUE_1;
 	struct cci_device *cci_dev = NULL;
 	struct msm_camera_cci_i2c_read_cfg *read_cfg = NULL;
+
 	CDBG("%s line %d\n", __func__, __LINE__);
 	cci_dev = v4l2_get_subdevdata(sd);
 	master = c_ctrl->cci_info->cci_i2c_master;
 	read_cfg = &c_ctrl->cfg.cci_i2c_read_cfg;
-	mutex_lock(&cci_dev->cci_master_info[master].mutex_q[queue]);
+
+	if (master >= MASTER_MAX || master < 0) {
+		pr_err("%s:%d Invalid I2C master %d\n",
+			__func__, __LINE__, master);
+		return -EINVAL;
+	}
+
+	mutex_lock(&cci_dev->cci_master_info[master].mutex);
 
 	/*
 	 * Call validate queue to make sure queue is empty before starting.
